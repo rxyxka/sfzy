@@ -1,0 +1,142 @@
+#include<stdio.h>
+#include<stdlib.h>
+
+struct goods                    //定义一个结构体，用于表明物品数量，属性数量，物品价值等等
+{
+	int n,m;	                //物品数量，物品属性数量
+	float zyz;					//数据预先给出的最优值，可以用来检验算法是否正确
+	double jz[50];			    //物品价值
+	int zl[50][50];			    //物品属性值(重量、体积等限制条件)
+	int yssx[50];				//背包各属性的约束上限
+}Point;
+             
+
+int dqxqzt[50];					 //当前的选取状态
+int zyxqzt[50];                  //最优的选取状态
+double zdjz = 0;                 //最大价值
+double dqzdjz = 0;               //当前最大价值
+double dqwpysh[50];			     //当前物品约束和
+
+//判断当前背包约束加上新物品的约束是否会超出背包约束上限
+bool Bound(int a){   //创建a，表示每一个物品
+	int i;
+	for (i = 0; i < Point.m; i++)//遍历当前物品的所有属性
+	{
+		if (dqwpysh[i] + Point.zl[i][a] <= Point.yssx[i])   //如果当前物品的约束和加上物品重量、体积等的约束小于等于
+			continue;                                       //背包的约束上限就继续上面的循环。如果超过上限，就跳出循环
+		else break;
+	}
+	if (i == Point.m)  //都符合才返回真值，反之返回false
+		return true;
+	else
+		return false;
+}
+
+//回溯函数
+void BackTrack(int a)
+{
+		//已经搜索到根节点
+		
+	if (a >= Point.n) //如果到叶子节点（结束条件）
+	{   
+
+		if (dqzdjz  >= zdjz)				//如果当前方案的总价值大于上一次的最大价值
+		{   
+			zdjz = dqzdjz;    			//将最大价值交换
+			for (int i = 0; i < Point.n; i++) 	//保存最优选取方案的路径
+			{    
+				zyxqzt[i] = dqxqzt[i];
+			}
+		}
+		return;
+	}
+	
+	//搜索左子树
+	if ( Bound(a) ) 			//如果当前约束+下一个物品约束<=背包最大约束限制      价值类似
+	{  
+		for (int i = 0; i < Point.m; i++)
+		{
+			dqwpysh[i] += Point.zl[i][a];       //当前约束和加上下一个约束
+		}
+		dqzdjz += Point.jz[a];   				//更新最大价值 
+		dqxqzt[a] = 1;                          //1表示放入背包 
+		
+		BackTrack(a + 1);                       // 回溯
+		for (i = 0; i < Point.m; i++) 			//不选择则回溯恢复原来的约束
+		{
+			dqwpysh[i] -= Point.zl[i][a];       //当前约束和减去上一个的约束
+		}
+		dqzdjz -= Point.jz[a];					//回溯恢复原来的价值
+		dqxqzt[a] = 0;						    //0表示不放入背包 
+
+	}
+	
+	//不装入这个物品，直接搜索右边的节点
+
+	//遍历右子树
+		BackTrack(a + 1);
+
+}
+
+//输入函数 
+int intput()
+{
+	int a, k;
+	
+	printf("请输入物品数量、属性数量、最优值："); 
+	scanf("%d%d%f", &Point.n,&Point.m,&Point.zyz);
+	
+	printf("物品价值:");
+	for (a = 0; a < Point.n; a++)
+	{
+		scanf("%lf", &Point.jz[a]);			     //读取物品价值数组
+	}
+	
+	
+	for (a = 0; a < Point.m; a++)
+	{
+		printf("第%d个属性:",a+1);
+		for (k = 0; k < Point.n; k++)
+			scanf("%d", &Point.zl[a][k]);	     //读取物品质量的二维数组
+	} 
+	 
+	printf("物品属性约束:");	
+	for (a = 0; a < Point.m; a++)
+		scanf("%d", &Point.yssx[a]);			 //读取背包上限数组
+		
+		
+	//初始化	
+	zdjz = 0;					
+	dqzdjz = 0;
+	for (int i = 0; i < Point.m; i++)
+	{
+		dqwpysh[i] = 0;
+	}	
+		
+	return 0;
+}
+
+ 
+//输出函数 
+void output()
+{
+	printf("最大价值为：%0.1f\n", zdjz);
+	printf("最优解决方案为：选取第");
+	for (int i = 0; i < Point.n; i++)
+	{
+		if (zyxqzt[i] == 1)
+			printf("%d ", i + 1);
+	}
+	printf("件物品\n");
+
+	printf("\n");
+
+}
+
+int main()     //主函数调用
+{
+	intput();
+	BackTrack(0);
+	output();
+	return 0;
+}
